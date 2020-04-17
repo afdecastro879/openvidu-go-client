@@ -30,4 +30,4 @@ Darwin:
 	@echo "Install oapi-codegen $(OK_STRING)"
 
 openapi:
-	oapi-codegen --generate types,client --package rest api/swagger.yml > pkg/client/openvidu.go
+	oapi-codegen --generate types,client --package openvidu api/swagger.yml > pkg/client/openvidu.go
