@@ -1,0 +1,13 @@
+name: Tag Code
+on: [push]
+
+jobs:
+  build:
+    name: Version Commit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Version commit
+        uses: afdecastro879/automatic-github-versioning-action@v0.1.5
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

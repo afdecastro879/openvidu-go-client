@@ -1,0 +1,342 @@
+openapi: 3.0.2
+info:
+  title: OpenVidu API
+  version: 1.0.0
+  description: A swagger wrapper for the OpenVidu API
+  contact:
+    name: Andres De Castro
+    email: af.decastro879@gmail.com
+  license:
+    name: GNU AGPLv3
+    url: 'https://www.gnu.org/licenses/agpl.txt'
+servers:
+  -
+    url: '{scheme}://{domain}:{port}/api'
+    description: ''
+    variables:
+      scheme:
+        default: https
+        description: The default Schema for OpenVidu Demo server
+      domain:
+        default: 'demos.openvidu.io:4443'
+        description: The default domain for OpenVidu Demo server
+      port:
+        default: '443'
+        description: The default port for OpenVidu Demo server
+paths:
+  /sessions:
+    summary: Operations over sessions
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/session'
+        required: true
+      tags:
+        - sessions
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/sessionCreated'
+          description: session successfully created and sessionId ready to be used
+        '400':
+          $ref: '#/components/responses/errorResponse'
+        '401':
+          $ref: '#/components/responses/errorResponse'
+        '409':
+          description: >-
+            parameter customSessionId corresponds to an existing session. There has been no change
+            at all in the state of OpenVidu Server. You can proceed to use the rejected custom
+            sessionId as usual without a problem
+      security:
+        -
+          basic_auth: []
+      operationId: init-session
+      summary: Initialize a session
+  /tokens:
+    summary: Operations over tokens
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/tokenSession'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/tokenCreated'
+          description: >-
+            token successfully created and ready to be used by one client to connect to the
+            associated session
+        '400':
+          $ref: '#/components/responses/errorResponse'
+        '401':
+          $ref: '#/components/responses/errorResponse'
+        '404':
+          $ref: '#/components/responses/errorResponse'
+      security:
+        -
+          basic_auth: []
+      operationId: new-token
+      summary: Create new Token
+components:
+  schemas:
+    sessionCreated:
+      description: ''
+      required:
+        - createdAt
+        - id
+      type: object
+      properties:
+        createdAt:
+          format: int64
+          description: Time when the session was created in UTC milliseconds
+          type: integer
+        id:
+          description: Session identifier. Store it for performing future operations onto this session
+          type: string
+    generalError:
+      title: Root Type for unauthorizedError
+      description: Error when the user is not authorized
+      type: object
+      properties:
+        timestamp:
+          format: date-time
+          type: string
+        status:
+          format: int32
+          type: integer
+        error:
+          type: string
+        message:
+          type: string
+        path:
+          type: string
+      example:
+        timestamp: '2020-04-17T16:30:26.946+0000'
+        status: 401
+        error: Unauthorized
+        message: Unauthorized
+        path: /api/sessions
+    session:
+      title: Root Type for Session
+      description: Describes a session
+      type: object
+      properties:
+        mediaMode:
+          description: >-
+            ROUTED (default) : Media streams will be routed through OpenVidu Server. This Media
+            Mode is mandatory for session recording
+
+            Not available yet: RELAYED
+          enum:
+            - ROUTED
+            - RELAYED
+          type: string
+        recordingMode:
+          description: >-
+            ALWAYS: Automatic recording from the first user publishing until the last participant
+            leaves the session
+
+            MANUAL (default) : If you want to manage when start and stop the recording
+          enum:
+            - ALWAYS
+            - MANUAL
+          type: string
+        customSessionId:
+          description: >-
+            You can fix the sessionId that will be assigned to the session with this parameter. If
+            you make another request with the exact same customSessionId while previous session
+            already exists, no session will be created and a 409 http response will be returned.
+            If this parameter is an empty string or not sent at all, OpenVidu Server will generate
+            a random sessionId for you. If set, it must be an alphanumeric string: allowed numbers
+            [0-9], letters [a-zA-Z], dashes (-) and underscores (_)
+          type: string
+        defaultOutputMode:
+          description: >-
+            COMPOSED(default) : when recording the session, all streams will be composed in the
+            same file in a grid layout
+
+            INDIVIDUAL: when recording the session, every stream is recorded in its own file
+          enum:
+            - COMPOSE
+            - INDIVIDUAL
+          type: string
+        defaultRecordingLayout:
+          description: |-
+            (Only applies if defaultOutputMode is set to COMPOSED)
+            BEST_FIT(default) : A grid layout where all the videos are evenly distributed
+            CUSTOM: Use your own custom layout. See Custom recording layouts section to learn how
+          enum:
+            - BEST_FIT
+            - CUSTOM
+          type: string
+        defaultCustomLayout:
+          description: >-
+            (Only applies if defaultRecordingLayout is set to CUSTOM)
+
+            A relative path indicating the custom recording layout to be used if more than one is
+            available. Default to empty string (if so custom layout expected under path set with
+            openvidu-server configuration property openvidu.recording.custom-layout)
+          type: string
+      example:
+        mediaMode: MEDIA_MODE
+        recordingMode: RECORDING_MODE
+        customSessionId: CUSTOM_SESSION_ID
+        defaultOutputMode: OUTPUT_MODE
+        defaultRecordingLayout: RECORDING_LAYOUT
+        defaultCustomLayout: CUSTOM_LAYOUT
+    kurentoOptions:
+      title: Root Type for kurentoOptions
+      description: Kurento Options
+      type: object
+      properties:
+        videoMaxRecvBandwidth:
+          format: int32
+          description: >-
+            maximum number of Kbps that the client owning the token will be able to receive from
+            Kurento Media Server. 0 means unconstrained. Giving a value to this property will
+            override the global configuration set in OpenVidu Server configuration (parameter
+            openvidu.streams.video.max-recv-bandwidth) for every incoming stream of the user
+            owning the token. WARNING: the lower value set to this property limits every other
+            bandwidth of the WebRTC pipeline this server-to-client stream belongs to. This
+            includes the user publishing the stream and every other user subscribed to the same
+            stream.
+          type: integer
+        videoMinRecvBandwidth:
+          format: int32
+          description: >-
+            minimum number of Kbps that the client owning the token will try to receive from
+            Kurento Media Server. 0 means unconstrained. Giving a value to this property will
+            override the global configuration set in OpenVidu Server configuration (parameter
+            openvidu.streams.video.min-recv-bandwidth) for every incoming stream of the user
+            owning the token.
+          type: integer
+        videoMaxSendBandwidth:
+          format: int32
+          description: >-
+            maximum number of Kbps that the client owning the token will be able to send to
+            Kurento Media Server. 0 means unconstrained. Giving a value to this property will
+            override the global configuration set in OpenVidu Server configuration (parameter
+            openvidu.streams.video.max-send-bandwidth) for every outgoing stream of the user
+            owning the token. WARNING: this value limits every other bandwidth of the WebRTC
+            pipeline this client-to-server stream belongs to. This includes every other user
+            subscribed to the stream.
+          type: integer
+        videoMinSendBandwidth:
+          format: int32
+          description: >-
+            minimum number of Kbps that the client owning the token will try to send to Kurento
+            Media Server. 0 means unconstrained. Giving a value to this property will override the
+            global configuration set in OpenVidu Server configuration (parameter
+            openvidu.streams.video.min-send-bandwidth) for every outgoing stream of the user
+            owning the token.
+          type: integer
+        allowedFilters:
+          description: >-
+            array of strings containing the names of the filters the user owning the token will be
+            able to apply (see Voice and video filters)
+          type: array
+          items:
+            type: string
+      example:
+        videoMaxRecvBandwidth: 1000
+        videoMinRecvBandwidth: 1000
+        videoMaxSendBandwidth: 1000
+        videoMinSendBandwidth: 1000
+        allowedFilters:
+          - filter1
+          - filter2
+    tokenCreated:
+      title: Root Type for tokenCreated
+      description: Returned data type when a token is created
+      type: object
+      allOf:
+        -
+          type: object
+          properties:
+            id:
+              description: same value as token
+              type: string
+            token:
+              description: >-
+                token value. Send it to one client to pass it as a parameter in
+                openvidu-browser method
+              type: string
+        -
+          $ref: '#/components/schemas/tokenSession'
+      example:
+        id: >-
+          wss://localhost:4443?sessionId=zfgmthb8jl9uellk&token=lnlrtnkwm4v8l7uc&role=PUBLISHER&turnUsername=FYYNRC&turnCredential=yfxxs3
+        session: zfgmthb8jl9uellk
+        role: PUBLISHER
+        data: User Data
+        token: >-
+          wss://localhost:4443?sessionId=zfgmthb8jl9uellk&token=lnlrtnkwm4v8l7uc&role=PUBLISHER&turnUsername=FYYNRC&turnCredential=yfxxs3
+        kurentoOptions:
+          videoMaxSendBandwidth: 700
+          allowedFilters:
+            - GStreamerFilter
+            - ZBarFilter
+    tokenSession:
+      title: Root Type for tokenSession
+      description: ''
+      required:
+        - session
+      type: object
+      properties:
+        session:
+          description: the sessionId for which the token should be associated
+          type: string
+        role:
+          description: Check OpenViduRole section of OpenVidu Node Client for a complete description
+          enum:
+            - SUBSCRIBER
+            - PUBLISHER
+            - MODERATOR
+          type: string
+        data:
+          description: metadata associated to this token (usually participant's information)
+          type: string
+        kurentoOptions:
+          $ref: '#/components/schemas/kurentoOptions'
+      example:
+        session: SESSION_ID
+        role: ROLE
+        data: DATA
+        kurentoOptions:
+          videoMaxRecvBandwidth: 1000
+          videoMinRecvBandwidth: 1000
+          videoMaxSendBandwidth: 1000
+          videoMinSendBandwidth: 1000
+          allowedFilters:
+            - filter1
+            - filter2
+  responses:
+    errorResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/generalError'
+      description: Response when the user is unauthorized
+  securitySchemes:
+    basic_auth:
+      scheme: basic
+      type: http
+      description: The basic auth
+security:
+  -
+    basic_auth: []
+tags:
+  -
+    name: sessions
+    description: All the sessions api
+  -
+    name: recordings
+    description: All the recordings API
