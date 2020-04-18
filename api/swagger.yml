@@ -47,6 +47,8 @@ paths:
         '401':
           $ref: '#/components/responses/errorResponse'
         '409':
+          content:
+            application/json: {}
           description: >-
             parameter customSessionId corresponds to an existing session. There has been no change
             at all in the state of OpenVidu Server. You can proceed to use the rejected custom
@@ -107,8 +109,8 @@ components:
       type: object
       properties:
         timestamp:
-          format: date-time
-          type: string
+          format: int64
+          type: integer
         status:
           format: int32
           type: integer
