@@ -1,3 +1,3 @@
-module github.com/afdecastro879/openvidu-go-client
+module github.com/jdgarcia1381/openvidu-go-client
 
 go 1.14
