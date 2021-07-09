@@ -8,6 +8,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Version commit
-        uses: afdecastro879/automatic-github-versioning-action@v0.1.5
+        uses: afdecastro879/automatic-github-versioning-action@v0.1.8
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
