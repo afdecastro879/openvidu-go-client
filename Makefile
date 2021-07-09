@@ -31,3 +31,4 @@ Darwin:
 
 openapi:
 	oapi-codegen --generate types,client --package openvidu api/swagger.yml > pkg/client/openvidu.go
+

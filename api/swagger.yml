@@ -160,7 +160,25 @@ components:
             a random sessionId for you. If set, it must be an alphanumeric string: allowed numbers
             [0-9], letters [a-zA-Z], dashes (-) and underscores (_)
           type: string
-        defaultOutputMode:
+        defaultRecordingProperties:
+          description: >-
+            The recording properties to apply by default to any recording started for this Session
+          type: object
+          $ref: '#/components/schemas/recordingProperties'
+      example:
+        mediaMode: MEDIA_MODE
+        recordingMode: RECORDING_MODE
+        customSessionId: CUSTOM_SESSION_ID
+        defaultRecordingProperties: 
+          outputMode: OUTPUT_MODE
+          recordingLayout: RECORDING_LAYOUT
+          customLayout: CUSTOM_LAYOUT
+    recordingProperties:
+      title: Root Type for RecordingProperties
+      description: Describes recording properties
+      type: object
+      properties:
+        outputMode:
           description: >-
             COMPOSED(default) : when recording the session, all streams will be composed in the
             same file in a grid layout
@@ -170,30 +188,27 @@ components:
             - COMPOSE
             - INDIVIDUAL
           type: string
-        defaultRecordingLayout:
+        recordingLayout:
           description: |-
-            (Only applies if defaultOutputMode is set to COMPOSED)
+            (Only applies if outputMode is set to COMPOSED)
             BEST_FIT(default) : A grid layout where all the videos are evenly distributed
             CUSTOM: Use your own custom layout. See Custom recording layouts section to learn how
           enum:
             - BEST_FIT
             - CUSTOM
           type: string
-        defaultCustomLayout:
+        customLayout:
           description: >-
-            (Only applies if defaultRecordingLayout is set to CUSTOM)
+            (Only applies if recordingLayout is set to CUSTOM)
 
             A relative path indicating the custom recording layout to be used if more than one is
             available. Default to empty string (if so custom layout expected under path set with
             openvidu-server configuration property openvidu.recording.custom-layout)
           type: string
       example:
-        mediaMode: MEDIA_MODE
-        recordingMode: RECORDING_MODE
-        customSessionId: CUSTOM_SESSION_ID
-        defaultOutputMode: OUTPUT_MODE
-        defaultRecordingLayout: RECORDING_LAYOUT
-        defaultCustomLayout: CUSTOM_LAYOUT
+        outputMode: OUTPUT_MODE
+        recordingLayout: RECORDING_LAYOUT
+        customLayout: CUSTOM_LAYOUT
     kurentoOptions:
       title: Root Type for kurentoOptions
       description: Kurento Options
